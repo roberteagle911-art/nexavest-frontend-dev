@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_BASE = "https://nexavest-backend.vercel.app"; // ✅ use your backend URL here
+const API_BASE = "https://nexavest-backend-evlu3d27w-roberteagle911-arts-projects.vercel.app";
 
 export default function App() {
   const [page, setPage] = useState("launch");
@@ -16,15 +16,17 @@ export default function App() {
       return;
     }
     setError("");
-    setLoading(true);
+    setLoading(true); ki
     setResult(null);
 
     try {
       const response = await fetch(`${API_BASE}/ai_recommend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol, amount: parseFloat(amount) }),
-      });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    symbol: symbol.toUpperCase(),
+    amount: parseFloat(amount),
+  }),
 
       if (!response.ok) throw new Error("API not reachable.");
 
