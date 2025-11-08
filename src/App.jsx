@@ -31,3 +31,19 @@ const analyzeInvestment = async () => {
     setLoading(false);
   }
 };
+// Old
+// const response = await fetch("https://nexavest-backend.onrender.com/analyze", {
+
+// ✅ New (Vercel backend)
+const response = await fetch("https://nexavest-backend.vercel.app/analyze", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ symbol, amount })
+});
+
+// For AI Recommendation
+const res2 = await fetch("https://nexavest-backend.vercel.app/ai_recommend", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ symbol, amount })
+});
