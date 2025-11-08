@@ -10,7 +10,7 @@ export default function App() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch("https://nexavest-backend.vercel.app/ai_recommend", {
+      const response = await fetch("https://nexavest-backend.onrender.com/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol, amount: parseFloat(amount) }),
