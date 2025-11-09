@@ -8,7 +8,7 @@ function App() {
   const [error, setError] = useState("");
 
   
-  const BACKEND_URL = "https://nexavest-backend.vercel.app"; 
+  const BACKEND_URL = "https://nexavest-backend.vercel.app/"; 
 
   const analyzeStock = async () => {
     if (!symbol || !amount) {
