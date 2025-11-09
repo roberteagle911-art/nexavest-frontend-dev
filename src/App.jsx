@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+noimport React, { useState } from "react";
 import {
   Chart as ChartJS,
   LineElement,
@@ -125,36 +125,20 @@ function App() {
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
-      {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {result && (
-        <div
-          style={{
-            backgroundColor: "#0f172a",
-            padding: "20px",
-            borderRadius: "10px",
-            width: "300px",
-            textAlign: "left",
-            boxShadow: "0 0 10px rgba(0,230,230,0.2)",
-          }}
-        >
-          <h3 style={{ color: "#00e6e6" }}>📊 Analysis Result</h3>
-          <p><strong>Symbol:</strong> {result.symbol}</p>
-          <p><strong>Volatility:</strong> {result.volatility}</p>
-          <p><strong>Expected Return:</strong> {result.expected_return}</p>
-          <p><strong>Risk:</strong> {result.risk_category}</p>
-          <p style={{ color: "#38bdf8" }}>{result.ai_recommendation}</p>
-
-          {chartData && (
-            <div style={{ marginTop: "20px" }}>
-              <h4 style={{ color: "#00e6e6" }}>📈 7-Day Price Chart</h4>
-              <Line data={chartData} />
-            </div>
-          )}
-        </div>
-      )}
+  {result && (
+    <div style={{ marginTop: "20px", backgroundColor: "#1a1a1a", padding: "15px", borderRadius: "10px", width: "260px", textAlign: "left" }}>
+      <h3 style={{ color: "#00e6e6" }}>📊 Analysis Result</h3>
+      <p><strong>Symbol:</strong> {result.symbol}</p>
+      <p><strong>Volatility:</strong> {result.volatility}</p>
+      <p><strong>Expected Return:</strong> {result.expected_return}</p>
+      <p><strong>Risk:</strong> {result.risk_category}</p>
+      <p style={{ marginTop: "10px", color: "#ccc" }}>{result.ai_recommendation}</p>
     </div>
-  );
+  )}
+</div>
+);
 }
 
 export default App;
