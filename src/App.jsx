@@ -24,55 +24,38 @@ function App() {
   const BACKEND_URL = "https://nexavest-backend-dev.vercel.app/api/analyze";
 
   const analyzeStock = async () => {
-    if (!symbol || !amount) {
-      setError("Please enter both stock symbol and amount.");
-      return;
+  const analyzeStock = async () => {
+  if (!symbol || !amount) {
+    setError("⚠️ Please enter both stock symbol and amount.");
+    return;
+  }
+
+  setError("");
+  setLoading(true);
+  setResult(null);
+
+  try {
+    const res = await fetch("https://nexavest-backend-dev.vercel.app/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ symbol, amount }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Backend responded with ${res.status}`);
     }
 
-    setError("");
-    setLoading(true);
-    setResult(null);
-    setChartData(null);
-
-    try {
-      const response = await fetch(BACKEND_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol, amount }),
-      });
-      if (!response.ok) throw new Error(await response.text());
-      const data = await response.json();
-      setResult(data);
-
-      // Yahoo chart data
-      const yfResponse = await fetch(
-        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=7d&interval=1d`
-      );
-      const yfData = await yfResponse.json();
-      const prices = yfData.chart.result[0].indicators.quote[0].close;
-      const dates = yfData.chart.result[0].timestamp.map((t) =>
-        new Date(t * 1000).toLocaleDateString("en-IN", { month: "short", day: "numeric" })
-      );
-
-      setChartData({
-        labels: dates,
-        datasets: [
-          {
-            label: `${symbol} (₹)`,
-            data: prices,
-            borderColor: "#00e6e6",
-            backgroundColor: "rgba(0,230,230,0.1)",
-            tension: 0.3,
-          },
-        ],
-      });
-    } catch (err) {
-      console.error("Error fetching:", err);
-      setError("⚠️ Unable to reach NexaVest API. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await res.json();
+    setResult(data);
+  } catch (err) {
+    console.error(err);
+    setError("⚠️ Unable to reach NexaVest API. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div
