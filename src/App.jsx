@@ -1,12 +1,26 @@
 import React, { useState } from "react";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
 function App() {
   const [symbol, setSymbol] = useState("");
   const [amount, setAmount] = useState("");
   const [result, setResult] = useState(null);
+  const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ✅ Dev backend URL
   const BACKEND_URL = "https://nexavest-backend-dev.vercel.app/api/analyze";
 
   const analyzeStock = async () => {
@@ -18,24 +32,43 @@ function App() {
     setError("");
     setLoading(true);
     setResult(null);
+    setChartData(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/analyze`, {
+      const response = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol, amount: parseFloat(amount) }),
+        body: JSON.stringify({ symbol, amount }),
       });
-
-      if (!response.ok) {
-        const msg = await response.text();
-        throw new Error(`Backend error ${response.status}: ${msg}`);
-      }
-
+      if (!response.ok) throw new Error(await response.text());
       const data = await response.json();
       setResult(data);
+
+      // Yahoo chart data
+      const yfResponse = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=7d&interval=1d`
+      );
+      const yfData = await yfResponse.json();
+      const prices = yfData.chart.result[0].indicators.quote[0].close;
+      const dates = yfData.chart.result[0].timestamp.map((t) =>
+        new Date(t * 1000).toLocaleDateString("en-IN", { month: "short", day: "numeric" })
+      );
+
+      setChartData({
+        labels: dates,
+        datasets: [
+          {
+            label: `${symbol} (₹)`,
+            data: prices,
+            borderColor: "#00e6e6",
+            backgroundColor: "rgba(0,230,230,0.1)",
+            tension: 0.3,
+          },
+        ],
+      });
     } catch (err) {
-      console.error("❌ API Error:", err);
-      setError("Unable to reach NexaVest API. Please try again later.");
+      console.error("Error fetching:", err);
+      setError("⚠️ Unable to reach NexaVest API. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -45,7 +78,7 @@ function App() {
     <div
       style={{
         minHeight: "100vh",
-        background: "radial-gradient(circle at top, #00111a, #000)",
+        background: "radial-gradient(circle at top, #000814, #001a33)",
         color: "#fff",
         display: "flex",
         flexDirection: "column",
@@ -55,13 +88,13 @@ function App() {
         padding: "20px",
       }}
     >
-      <h1 style={{ color: "#00e6e6", marginBottom: "20px" }}>NexaVest AI</h1>
+      <h1 style={{ color: "#00e6e6", marginBottom: "20px" }}>NexaVest AI (Dev)</h1>
 
       <input
         type="text"
         placeholder="Stock Symbol (e.g. RELIANCE.NS)"
         value={symbol}
-        onChange={(e) => setSymbol(e.target.value)}
+        onChange={(e) => setSymbol(e.target.value.toUpperCase())}
         style={{
           padding: "10px",
           width: "260px",
@@ -69,6 +102,8 @@ function App() {
           border: "none",
           marginBottom: "10px",
           textAlign: "center",
+          backgroundColor: "#1e293b",
+          color: "#fff",
         }}
       />
 
@@ -84,6 +119,8 @@ function App() {
           border: "none",
           marginBottom: "15px",
           textAlign: "center",
+          backgroundColor: "#1e293b",
+          color: "#fff",
         }}
       />
 
@@ -99,27 +136,23 @@ function App() {
           cursor: "pointer",
           fontWeight: "bold",
           width: "260px",
+          marginBottom: "20px",
         }}
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
-      {error && (
-        <p style={{ color: "red", marginTop: "15px", fontWeight: "bold" }}>
-          {error}
-        </p>
-      )}
+      {error && <p style={{ color: "#ff6b6b" }}>{error}</p>}
 
       {result && (
         <div
           style={{
-            marginTop: "20px",
-            backgroundColor: "#0d1a1a",
-            padding: "15px",
+            backgroundColor: "#0f172a",
+            padding: "20px",
             borderRadius: "10px",
-            width: "280px",
+            width: "300px",
             textAlign: "left",
-            boxShadow: "0 0 10px rgba(0, 230, 230, 0.2)",
+            boxShadow: "0 0 10px rgba(0,230,230,0.2)",
           }}
         >
           <h3 style={{ color: "#00e6e6" }}>📊 Analysis Result</h3>
@@ -127,9 +160,14 @@ function App() {
           <p><strong>Volatility:</strong> {result.volatility}</p>
           <p><strong>Expected Return:</strong> {result.expected_return}</p>
           <p><strong>Risk:</strong> {result.risk_category}</p>
-          <p style={{ marginTop: "10px", color: "#ccc" }}>
-            {result.ai_recommendation}
-          </p>
+          <p style={{ color: "#38bdf8" }}>{result.ai_recommendation}</p>
+
+          {chartData && (
+            <div style={{ marginTop: "20px" }}>
+              <h4 style={{ color: "#00e6e6" }}>📈 7-Day Price Chart</h4>
+              <Line data={chartData} />
+            </div>
+          )}
         </div>
       )}
     </div>
