@@ -21,18 +21,16 @@ function App() {
     setResult(null);
 
     try {
-      const response = await fetch("https://nexavest-backend.vercel.app/analyze", {
+      const response = await fetch(`${BACKEND_URL}/analyze`, {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ symbol, amount }),
 });
 
-      if (!res.ok) {
-        throw new Error(`Server responded with ${res.status}`);
+      if (!response.ok) {
+  const msg = await response.text();
+  throw new Error(`Backend error ${response.status}: ${msg}`);
       }
-
       const data = await res.json();
       setResult(data);
     } catch (err) {
