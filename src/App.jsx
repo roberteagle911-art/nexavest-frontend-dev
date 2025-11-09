@@ -1,83 +1,74 @@
-noimport React, { useState } from "react";
-import {
-  Chart as ChartJS,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
-
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+import React, { useState } from "react";
 
 function App() {
   const [symbol, setSymbol] = useState("");
   const [amount, setAmount] = useState("");
   const [result, setResult] = useState(null);
-  const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Dev backend URL
-  const BACKEND_URL = "https://nexavest-backend-dev.vercel.app/api/analyze";
-
   const analyzeStock = async () => {
-  const analyzeStock = async () => {
-  if (!symbol || !amount) {
-    setError("⚠️ Please enter both stock symbol and amount.");
-    return;
-  }
-
-  setError("");
-  setLoading(true);
-  setResult(null);
-
-  try {
-    const res = await fetch("https://nexavest-backend-dev.vercel.app/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ symbol, amount }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Backend responded with ${res.status}`);
+    if (!symbol || !amount) {
+      setError("⚠️ Please enter both stock symbol and amount.");
+      return;
     }
 
-    const data = await res.json();
-    setResult(data);
-  } catch (err) {
-    console.error(err);
-    setError("⚠️ Unable to reach NexaVest API. Please try again later.");
-  } finally {
-    setLoading(false);
-  }
-};
+    setError("");
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const res = await fetch("https://nexavest-backend-dev.vercel.app/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ symbol, amount }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Backend responded with ${res.status}`);
+      }
+
+      const data = await res.json();
+      setResult(data);
+    } catch (err) {
+      console.error(err);
+      setError("⚠️ Unable to reach NexaVest API. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: "radial-gradient(circle at top, #000814, #001a33)",
-        color: "#fff",
+        backgroundColor: "#0b0b0b",
+        color: "#ffffff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "Poppins, sans-serif",
+        fontFamily: "Arial, sans-serif",
         padding: "20px",
       }}
     >
-      <h1 style={{ color: "#00e6e6", marginBottom: "20px" }}>NexaVest AI (Dev)</h1>
+      <h1
+        style={{
+          color: "#00e6e6",
+          marginBottom: "20px",
+          textShadow: "0 0 10px #00e6e6",
+        }}
+      >
+        NexaVest AI (Dev)
+      </h1>
 
       <input
         type="text"
         placeholder="Stock Symbol (e.g. RELIANCE.NS)"
         value={symbol}
-        onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+        onChange={(e) => setSymbol(e.target.value)}
         style={{
           padding: "10px",
           width: "260px",
@@ -85,8 +76,6 @@ function App() {
           border: "none",
           marginBottom: "10px",
           textAlign: "center",
-          backgroundColor: "#1e293b",
-          color: "#fff",
         }}
       />
 
@@ -102,8 +91,6 @@ function App() {
           border: "none",
           marginBottom: "15px",
           textAlign: "center",
-          backgroundColor: "#1e293b",
-          color: "#fff",
         }}
       />
 
@@ -114,31 +101,68 @@ function App() {
           padding: "10px 20px",
           backgroundColor: "#00e6e6",
           color: "#000",
+          fontWeight: "bold",
           border: "none",
           borderRadius: "5px",
           cursor: "pointer",
-          fontWeight: "bold",
           width: "260px",
-          marginBottom: "20px",
+          boxShadow: "0 0 10px #00e6e6",
         }}
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {loading && (
+        <div style={{ color: "#00e6e6", marginTop: "10px", fontWeight: "bold" }}>
+          🔍 Analyzing live market data...
+        </div>
+      )}
 
-  {result && (
-    <div style={{ marginTop: "20px", backgroundColor: "#1a1a1a", padding: "15px", borderRadius: "10px", width: "260px", textAlign: "left" }}>
-      <h3 style={{ color: "#00e6e6" }}>📊 Analysis Result</h3>
-      <p><strong>Symbol:</strong> {result.symbol}</p>
-      <p><strong>Volatility:</strong> {result.volatility}</p>
-      <p><strong>Expected Return:</strong> {result.expected_return}</p>
-      <p><strong>Risk:</strong> {result.risk_category}</p>
-      <p style={{ marginTop: "10px", color: "#ccc" }}>{result.ai_recommendation}</p>
+      {error && (
+        <p
+          style={{
+            color: "red",
+            marginTop: "15px",
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </p>
+      )}
+
+      {result && (
+        <div
+          style={{
+            marginTop: "20px",
+            backgroundColor: "#1a1a1a",
+            padding: "15px",
+            borderRadius: "10px",
+            width: "280px",
+            textAlign: "left",
+            boxShadow: "0 0 15px #00e6e6",
+          }}
+        >
+          <h3 style={{ color: "#00e6e6", marginBottom: "10px" }}>📊 Analysis Result</h3>
+          <p>
+            <strong>Symbol:</strong> {result.symbol}
+          </p>
+          <p>
+            <strong>Volatility:</strong> {result.volatility}
+          </p>
+          <p>
+            <strong>Expected Return:</strong> {result.expected_return}
+          </p>
+          <p>
+            <strong>Risk:</strong> {result.risk_category}
+          </p>
+          <p style={{ marginTop: "10px", color: "#ccc" }}>
+            {result.ai_recommendation}
+          </p>
+        </div>
+      )}
     </div>
-  )}
-</div>
-);
+  );
 }
 
 export default App;
