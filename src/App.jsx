@@ -1,73 +1,103 @@
 import React, { useState } from "react";
 
 function App() {
-  const [symbol, setSymbol] = useState("AAPL");
-  const [amount, setAmount] = useState(500);
+  const [query, setQuery] = useState("");
+  const [amount, setAmount] = useState("");
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // <-- put your backend dev URL here (you provided earlier)
   const BACKEND_URL = "https://nexavest-backend-dev.vercel.app";
 
-  const analyzeStock = async () => {
-    if (!symbol || !amount) {
-      setError("Please enter both stock symbol and amount.");
+  const analyze = async () => {
+    if (!query || !amount) {
+      setError("Please enter both a company/crypto name and amount.");
       return;
     }
 
     setError("");
-    setLoading(true);
     setResult(null);
+    setLoading(true);
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol: symbol.trim(), amount: Number(amount) })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query, amount: parseFloat(amount) }),
       });
 
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Backend error ${res.status}: ${txt}`);
+        const errText = await res.text();
+        throw new Error(`Server error: ${res.status} ${errText}`);
       }
 
       const data = await res.json();
       setResult(data);
     } catch (err) {
       console.error(err);
-      setError("Unable to reach NexaVest API. Please check backend status.");
+      setError("⚠️ Unable to reach NexaVest API. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      backgroundColor: "#0b0b0b",
-      color: "#fff",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "flex-start",
-      fontFamily: "Arial, sans-serif",
-      padding: "24px"
-    }}>
-      <h1 style={{ color: "#00e6e6", textShadow: "0 0 20px #00e6e6" }}>NexaVest AI (Dev)</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "radial-gradient(circle at top, #00181f 0%, #000 100%)",
+        color: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "Poppins, sans-serif",
+        padding: "20px",
+      }}
+    >
+      <img
+        src="/favicon.png.png"
+        alt="NexaVest Logo"
+        onError={(e) => (e.target.style.display = "none")}
+        style={{
+          width: "70px",
+          marginBottom: "20px",
+          borderRadius: "12px",
+          boxShadow: "0 0 15px #00e6e6",
+        }}
+      />
+
+      <h1
+        style={{
+          color: "#00e6e6",
+          textShadow: "0 0 25px #00e6e6",
+          marginBottom: "10px",
+          fontWeight: "900",
+        }}
+      >
+        NexaVest AI
+      </h1>
+      <p style={{ color: "#aaa", marginBottom: "25px", fontSize: "14px" }}>
+        Enter a stock, company, crypto, or fund — NexaVest will detect and analyze it.
+      </p>
 
       <input
         type="text"
-        placeholder="Stock symbol (e.g. AAPL or RELIANCE.NS)"
-        value={symbol}
-        onChange={(e) => setSymbol(e.target.value)}
+        placeholder="e.g. Tata Motors / Bitcoin / Apple"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
         style={{
-          padding: "14px",
-          width: "320px",
+          padding: "12px",
+          width: "280px",
           borderRadius: "8px",
           border: "none",
-          marginBottom: "12px",
-          textAlign: "center"
+          marginBottom: "10px",
+          textAlign: "center",
+          backgroundColor: "#f5f5f5",
+          color: "#000",
+          fontWeight: "600",
         }}
       />
 
@@ -77,71 +107,148 @@ function App() {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         style={{
-          padding: "14px",
-          width: "320px",
+          padding: "12px",
+          width: "280px",
           borderRadius: "8px",
           border: "none",
-          marginBottom: "18px",
-          textAlign: "center"
+          marginBottom: "15px",
+          textAlign: "center",
+          backgroundColor: "#f5f5f5",
+          color: "#000",
+          fontWeight: "600",
         }}
       />
 
       <button
-        onClick={analyzeStock}
+        onClick={analyze}
         disabled={loading}
         style={{
-          padding: "12px 20px",
+          padding: "12px 25px",
           backgroundColor: "#00e6e6",
           color: "#000",
           border: "none",
           borderRadius: "10px",
-          cursor: loading ? "default" : "pointer",
-          width: "320px",
-          fontWeight: "700",
-          marginBottom: "20px"
+          cursor: loading ? "not-allowed" : "pointer",
+          width: "280px",
+          fontWeight: "bold",
+          boxShadow: "0 0 25px #00e6e6",
+          transition: "all 0.2s ease",
         }}
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
       {error && (
-        <div style={{ color: "#ff6b6b", marginBottom: "18px", fontWeight: "700" }}>
-          ⚠️ {error}
-        </div>
+        <p
+          style={{
+            color: "#ff4d4d",
+            marginTop: "15px",
+            fontWeight: "600",
+            textAlign: "center",
+            maxWidth: "300px",
+          }}
+        >
+          {error}
+        </p>
       )}
 
       {result && (
-        <div style={{
-          width: "340px",
-          background: "#111213",
-          borderRadius: "14px",
-          padding: "18px",
-          boxShadow: "0 0 30px rgba(0,230,230,0.14)",
-          color: "#ddd"
-        }}>
-          <h3 style={{ color: "#00e6e6" }}>📊 Analysis Result</h3>
-          <p><strong>Symbol:</strong> {result.symbol}</p>
+        <div
+          style={{
+            marginTop: "30px",
+            backgroundColor: "#0a0a0a",
+            padding: "20px",
+            borderRadius: "12px",
+            width: "320px",
+            boxShadow: "0 0 25px #00e6e6",
+            textAlign: "left",
+            lineHeight: "1.6",
+          }}
+        >
+          <h3 style={{ color: "#00e6e6", marginBottom: "10px" }}>📊 Analysis Result</h3>
 
-          {result.current_price !== undefined && (
-            <p><strong>Current Price:</strong> ${result.current_price}</p>
-          )}
-
-          <p><strong>Volatility:</strong> {result.volatility}</p>
-          <p><strong>Expected Return:</strong> {result.expected_return}</p>
-          <p><strong>Risk:</strong> {result.risk_category}</p>
-          <p><strong>Est. Value:</strong> ${result.estimated_value}</p>
-          <p style={{ color: Number(result.gain_loss) < 0 ? "#ff4d4f" : "#28a745" }}>
-            <strong>Gain/Loss:</strong> {Number(result.gain_loss) < 0 ? "-" : ""}${Math.abs(Number(result.gain_loss))}
+          <p>
+            <strong>Asset:</strong> {result.name || result.symbol}
+          </p>
+          <p>
+            <strong>Type:</strong> {result.asset_type || "Unknown"}
+          </p>
+          <p>
+            <strong>Symbol:</strong> {result.symbol}
+          </p>
+          <p>
+            <strong>Market:</strong> {result.market || "N/A"}
+          </p>
+          <p>
+            <strong>Currency:</strong> {result.currency}
           </p>
 
-          <hr style={{ borderColor: "#1f6f6f", margin: "12px 0" }} />
+          {result.current_price && (
+            <p>
+              <strong>Current Price:</strong> {result.currency} {result.current_price}
+            </p>
+          )}
 
-          <p style={{ color: "#cfcfcf" }}>{result.ai_recommendation}</p>
+          {result.current_price_usd && (
+            <p>
+              <strong>USD Price:</strong> ${result.current_price_usd}
+            </p>
+          )}
+          {result.current_price_inr && (
+            <p>
+              <strong>INR Price:</strong> ₹{result.current_price_inr}
+            </p>
+          )}
+
+          <p>
+            <strong>Volatility:</strong> {result.volatility}
+          </p>
+          <p>
+            <strong>Expected Return:</strong> {result.expected_return}
+          </p>
+          <p>
+            <strong>Risk:</strong> {result.risk_category}
+          </p>
+          <p>
+            <strong>Holding Period:</strong> {result.holding_period}
+          </p>
+
+          {result.estimated_value && (
+            <p>
+              <strong>Est. Value:</strong> {result.currency} {result.estimated_value}
+            </p>
+          )}
+
+          {result.gain_loss !== null && (
+            <p
+              style={{
+                color:
+                  Number(result.gain_loss) > 0
+                    ? "#00ff7f"
+                    : Number(result.gain_loss) < 0
+                    ? "#ff4d4d"
+                    : "#ccc",
+              }}
+            >
+              <strong>Gain/Loss:</strong>{" "}
+              {result.gain_loss > 0 ? "+" : ""}
+              {result.currency} {result.gain_loss}
+            </p>
+          )}
+
+          <hr
+            style={{
+              margin: "15px 0",
+              border: "1px solid #00e6e6",
+              opacity: 0.3,
+            }}
+          />
+          <p style={{ color: "#ccc" }}>{result.ai_recommendation}</p>
         </div>
       )}
 
-      <footer style={{ marginTop: "32px", color: "#3fbfbf" }}>
-        © {new Date().getFullYear()} NexaVest | Dev
+      <footer style={{ marginTop: "40px", color: "#007a7a", fontSize: "13px" }}>
+        © {new Date().getFullYear()} NexaVest | Retail AI Investing
       </footer>
     </div>
   );
