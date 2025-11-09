@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 
 function App() {
-  const [symbol, setSymbol] = useState("");
-  const [amount, setAmount] = useState("");
+  const [symbol, setSymbol] = useState("AAPL");
+  const [amount, setAmount] = useState(500);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // <-- put your backend dev URL here (you provided earlier)
   const BACKEND_URL = "https://nexavest-backend-dev.vercel.app";
 
   const analyzeStock = async () => {
@@ -16,84 +17,57 @@ function App() {
     }
 
     setError("");
-    setResult(null);
     setLoading(true);
+    setResult(null);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/analyze`, {
+      const res = await fetch(`${BACKEND_URL}/api/analyze`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ symbol, amount: parseFloat(amount) }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol: symbol.trim(), amount: Number(amount) })
       });
 
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Backend error ${res.status}: ${txt}`);
+      }
 
       const data = await res.json();
       setResult(data);
     } catch (err) {
       console.error(err);
-      setError("⚠️ Unable to reach NexaVest API. Please try again later.");
+      setError("Unable to reach NexaVest API. Please check backend status.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "radial-gradient(circle at top, #00151a 0%, #000 100%)",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Poppins, sans-serif",
-        padding: "20px",
-      }}
-    >
-      {/* Logo */}
-      <img
-        src="/favicon.png.png"
-        alt="NexaVest Logo"
-        onError={(e) => (e.target.style.display = "none")}
-        style={{
-          width: "80px",
-          marginBottom: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 0 20px #00e6e6",
-        }}
-      />
-
-      <h1
-        style={{
-          color: "#00e6e6",
-          marginBottom: "25px",
-          textShadow: "0 0 25px #00e6e6",
-          fontWeight: "900",
-          letterSpacing: "1px",
-          textAlign: "center",
-        }}
-      >
-        NexaVest AI (Dev)
-      </h1>
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#0b0b0b",
+      color: "#fff",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      fontFamily: "Arial, sans-serif",
+      padding: "24px"
+    }}>
+      <h1 style={{ color: "#00e6e6", textShadow: "0 0 20px #00e6e6" }}>NexaVest AI (Dev)</h1>
 
       <input
         type="text"
-        placeholder="Stock Symbol (e.g. AAPL, RELIANCE.NS)"
+        placeholder="Stock symbol (e.g. AAPL or RELIANCE.NS)"
         value={symbol}
         onChange={(e) => setSymbol(e.target.value)}
         style={{
-          padding: "10px",
-          width: "260px",
-          borderRadius: "5px",
+          padding: "14px",
+          width: "320px",
+          borderRadius: "8px",
           border: "none",
-          marginBottom: "10px",
-          textAlign: "center",
-          backgroundColor: "#e0e0e0",
-          fontWeight: "600",
+          marginBottom: "12px",
+          textAlign: "center"
         }}
       />
 
@@ -103,14 +77,12 @@ function App() {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         style={{
-          padding: "10px",
-          width: "260px",
-          borderRadius: "5px",
+          padding: "14px",
+          width: "320px",
+          borderRadius: "8px",
           border: "none",
-          marginBottom: "15px",
-          textAlign: "center",
-          backgroundColor: "#e0e0e0",
-          fontWeight: "600",
+          marginBottom: "18px",
+          textAlign: "center"
         }}
       />
 
@@ -118,103 +90,59 @@ function App() {
         onClick={analyzeStock}
         disabled={loading}
         style={{
-          padding: "12px 25px",
+          padding: "12px 20px",
           backgroundColor: "#00e6e6",
           color: "#000",
           border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          width: "260px",
-          boxShadow: "0 0 25px #00e6e6",
+          borderRadius: "10px",
+          cursor: loading ? "default" : "pointer",
+          width: "320px",
+          fontWeight: "700",
+          marginBottom: "20px"
         }}
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
       {error && (
-        <p
-          style={{
-            color: "#ff4d4d",
-            marginTop: "15px",
-            fontWeight: "600",
-            textAlign: "center",
-          }}
-        >
-          {error}
-        </p>
+        <div style={{ color: "#ff6b6b", marginBottom: "18px", fontWeight: "700" }}>
+          ⚠️ {error}
+        </div>
       )}
 
       {result && (
-        <div
-          style={{
-            marginTop: "30px",
-            backgroundColor: "#0a0a0a",
-            padding: "20px",
-            borderRadius: "12px",
-            width: "300px",
-            boxShadow: "0 0 25px #00e6e6",
-            textAlign: "left",
-            lineHeight: "1.6",
-          }}
-        >
-          <h3
-            style={{
-              color: "#00e6e6",
-              marginBottom: "10px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            📊 Analysis Result
-          </h3>
-          <p>
-            <strong>Symbol:</strong> {result.symbol}
+        <div style={{
+          width: "340px",
+          background: "#111213",
+          borderRadius: "14px",
+          padding: "18px",
+          boxShadow: "0 0 30px rgba(0,230,230,0.14)",
+          color: "#ddd"
+        }}>
+          <h3 style={{ color: "#00e6e6" }}>📊 Analysis Result</h3>
+          <p><strong>Symbol:</strong> {result.symbol}</p>
+
+          {result.current_price !== undefined && (
+            <p><strong>Current Price:</strong> ${result.current_price}</p>
+          )}
+
+          <p><strong>Volatility:</strong> {result.volatility}</p>
+          <p><strong>Expected Return:</strong> {result.expected_return}</p>
+          <p><strong>Risk:</strong> {result.risk_category}</p>
+          <p><strong>Est. Value:</strong> ${result.estimated_value}</p>
+          <p style={{ color: Number(result.gain_loss) < 0 ? "#ff4d4f" : "#28a745" }}>
+            <strong>Gain/Loss:</strong> {Number(result.gain_loss) < 0 ? "-" : ""}${Math.abs(Number(result.gain_loss))}
           </p>
-          <p>
-            <strong>Current Price:</strong> ${result.current_price}
-          </p>
-          <p>
-            <strong>Volatility:</strong> {result.volatility}
-          </p>
-          <p>
-            <strong>Expected Return:</strong> {result.expected_return}
-          </p>
-          <p>
-            <strong>Risk:</strong> {result.risk_category}
-          </p>
-          <p>
-            <strong>Est. Value:</strong> ${result.estimated_value}
-          </p>
-          <p>
-  <strong>Gain/Loss:</strong>{" "}
-  <span
-    style={{
-      color:
-        result.gain_loss > 0
-          ? "#00ff7f"
-          : result.gain_loss < 0
-          ? "#ff4d4d"
-          : "#ccc",
-    }}
-  >
-    {result.gain_loss > 0
-      ? `+$${Math.abs(result.gain_loss)}`
-      : result.gain_loss < 0
-      ? `-$${Math.abs(result.gain_loss)}`
-      : "$0"}
-  </span>
-</p>
-          <hr
-            style={{
-              margin: "15px 0",
-              border: "1px solid #00e6e6",
-              opacity: 0.3,
-            }}
-          />
-          <p style={{ color: "#ccc" }}>{result.ai_recommendation}</p>
+
+          <hr style={{ borderColor: "#1f6f6f", margin: "12px 0" }} />
+
+          <p style={{ color: "#cfcfcf" }}>{result.ai_recommendation}</p>
         </div>
       )}
+
+      <footer style={{ marginTop: "32px", color: "#3fbfbf" }}>
+        © {new Date().getFullYear()} NexaVest | Dev
+      </footer>
     </div>
   );
 }
