@@ -187,11 +187,24 @@ function App() {
             <strong>Est. Value:</strong> ${result.estimated_value}
           </p>
           <p>
-            <strong>Gain/Loss:</strong>{" "}
-            <span style={{ color: result.gain_loss < 0 ? "#ff4d4d" : "#00ff7f" }}>
-              ${result.gain_loss}
-            </span>
-          </p>
+  <strong>Gain/Loss:</strong>{" "}
+  <span
+    style={{
+      color:
+        result.gain_loss > 0
+          ? "#00ff7f"
+          : result.gain_loss < 0
+          ? "#ff4d4d"
+          : "#ccc",
+    }}
+  >
+    {result.gain_loss > 0
+      ? `+$${Math.abs(result.gain_loss)}`
+      : result.gain_loss < 0
+      ? `-$${Math.abs(result.gain_loss)}`
+      : "$0"}
+  </span>
+</p>
           <hr
             style={{
               margin: "15px 0",
