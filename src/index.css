@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #000;
-  color: #fff;
-  font-family: 'Poppins', monospace;
+/* simple neon shadow classes used in App */
+:root{
+  --neon: 0 6px 30px rgba(0,255,240,0.15);
 }
+body { @apply bg-black text-gray-100 font-sans; }
+.shadow-neon { box-shadow: 0 10px 30px rgba(0,255,240,0.15); }
+.text-neon { color: #00F0DF; text-shadow: 0 2px 20px rgba(0,255,240,0.5); }
