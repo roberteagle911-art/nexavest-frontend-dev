@@ -1,80 +1,95 @@
-async function analyzeAsset() {
-  const asset = document.getElementById("asset").value.trim();
-  const amount = parseFloat(document.getElementById("amount").value);
-  const resultDiv = document.getElementById("result");
+// app.js
+const BACKEND_BASE = "https://nexavest-backend-dev.onrender.com"; // Your Render backend URL
 
-  // Clear and show loading state
-  resultDiv.classList.remove("hidden");
-  resultDiv.innerHTML = `
-    <div class="text-center text-gray-300">
-      <p class="animate-pulse">🔍 Analyzing <span class="text-cyan-400 font-semibold">${asset}</span>...</p>
+const assetEl = document.getElementById("asset");
+const amountEl = document.getElementById("amount");
+const currencyEl = document.getElementById("amountCurrency");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const clearBtn = document.getElementById("clearBtn");
+const statusEl = document.getElementById("status");
+const resultEl = document.getElementById("result");
+
+function setStatus(msg, error = false) {
+  statusEl.innerText = msg;
+  statusEl.style.color = error ? "#ff8a80" : "#9fded6";
+}
+
+function renderResult(data) {
+  resultEl.classList.remove("hidden");
+  resultEl.innerHTML = `
+    <h2 class="text-xl font-bold text-cyan-300 mb-3">📊 Analysis Result</h2>
+    <div class="grid gap-2">
+      <div><b>Asset:</b> ${data.asset || "N/A"} ${data.symbol ? `(${data.symbol})` : ""}</div>
+      <div><b>Type:</b> ${data.type || "N/A"}</div>
+      <div><b>Current Price:</b> ${data.current_price ?? "N/A"} ${data.currency ?? ""}</div>
+      <div><b>Annual Volatility:</b> ${
+        data.volatility_annual
+          ? (Number(data.volatility_annual) * 100).toFixed(2) + "%"
+          : "N/A"
+      }</div>
+      <div><b>Expected Annual Return:</b> ${
+        data.annual_return
+          ? (Number(data.annual_return) * 100).toFixed(2) + "%"
+          : data.expected_return || "N/A"
+      }</div>
+      <div><b>Risk Level:</b> ${data.risk || "N/A"}</div>
+      <div><b>Suggested Holding Period:</b> ${data.holding_period || "N/A"}</div>
+      <div><b>Estimated Value:</b> ${data.estimated_value ?? ""} ${
+    data.currency ?? ""
+  }</div>
+      ${
+        data.amount_in_asset_currency
+          ? `<div><b>Converted Amount:</b> ${data.amount_in_asset_currency} ${data.currency}</div>`
+          : ""
+      }
+      <div class="mt-2 text-gray-400">${data.summary || ""}</div>
+      <div class="mt-2 text-xs text-gray-500">${data.disclaimer || ""}</div>
     </div>
   `;
+}
 
-  // Validation
-  if (!asset || isNaN(amount) || amount <= 0) {
-    resultDiv.innerHTML = `
-      <p class="text-red-400 text-center font-medium">⚠️ Please enter a valid asset and investment amount.</p>
-    `;
+analyzeBtn.addEventListener("click", async () => {
+  const asset = assetEl.value.trim();
+  const amount = parseFloat(amountEl.value);
+  const amount_currency = currencyEl.value || undefined;
+
+  if (!asset || !amount || amount <= 0) {
+    setStatus("⚠️ Please enter valid details", true);
     return;
   }
 
+  setStatus("Analyzing… please wait");
+  analyzeBtn.disabled = true;
+
   try {
-    // API call to backend
-    const response = await fetch("https://nexavest-backend-dev.vercel.app/analyze", {
+    const res = await fetch(`${BACKEND_BASE}/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ asset, amount }),
+      body: JSON.stringify({ asset, amount, amount_currency }),
     });
 
-    // Handle non-OK responses
-    if (!response.ok) {
-      throw new Error(`Backend error: ${response.statusText}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      setStatus(data.detail || data.error || "Analysis failed", true);
+      analyzeBtn.disabled = false;
+      return;
     }
 
-    const data = await response.json();
-
-    // Display results in styled format
-    resultDiv.innerHTML = `
-      <h2 class="text-xl font-bold mb-4 glow">📊 Analysis Result</h2>
-      <div class="space-y-2 text-sm md:text-base text-gray-200">
-        <p><strong>Asset:</strong> ${data.asset || asset}</p>
-        <p><strong>Type:</strong> ${data.type || "N/A"}</p>
-        <p><strong>Market:</strong> ${data.market || "N/A"}</p>
-        <p><strong>Currency:</strong> ${data.currency || "N/A"}</p>
-        <p><strong>Current Price:</strong> ${data.current_price ? formatValue(data.current_price, data.currency) : "N/A"}</p>
-        <p><strong>Volatility:</strong> ${data.volatility || "N/A"}</p>
-        <p><strong>Expected Return:</strong> ${data.expected_return || "N/A"}</p>
-        <p><strong>Risk Level:</strong> <span class="${riskColor(data.risk)} font-semibold">${data.risk || "N/A"}</span></p>
-        <p><strong>Suggested Holding Period:</strong> ${data.holding_period || "N/A"}</p>
-        <p><strong>Estimated Value:</strong> ${data.estimated_value ? formatValue(data.estimated_value, data.currency) : "N/A"}</p>
-        <hr class="border-gray-700 my-3" />
-        <p class="text-cyan-400">${data.summary || "No detailed summary available."}</p>
-      </div>
-    `;
-  } catch (error) {
-    console.error("Error:", error);
-    resultDiv.innerHTML = `
-      <p class="text-red-400 text-center font-medium">
-        ❌ Unable to reach NexaVest servers. Please check your connection or try again later.
-      </p>
-    `;
+    renderResult(data);
+    setStatus("✅ Analysis complete");
+  } catch (e) {
+    console.error(e);
+    setStatus("❌ Unable to reach backend. Check your Render link.", true);
+  } finally {
+    analyzeBtn.disabled = false;
   }
-}
+});
 
-// Helper: Format currency
-function formatValue(value, currency) {
-  if (!value) return "N/A";
-  const symbol = currency === "INR" ? "₹" : currency === "USD" ? "$" : "";
-  return `${symbol}${parseFloat(value).toLocaleString()} ${currency}`;
-}
-
-// Helper: Risk color
-function riskColor(risk) {
-  if (!risk) return "text-gray-300";
-  const r = risk.toLowerCase();
-  if (r.includes("high")) return "text-red-400";
-  if (r.includes("medium")) return "text-yellow-400";
-  if (r.includes("low")) return "text-green-400";
-  return "text-gray-300";
-                                        }
+clearBtn.addEventListener("click", () => {
+  assetEl.value = "";
+  amountEl.value = "";
+  currencyEl.value = "";
+  resultEl.classList.add("hidden");
+  setStatus("");
+});
