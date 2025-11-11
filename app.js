@@ -1,5 +1,5 @@
 // app.js
-const BACKEND_BASE = "https://nexavest-backend-dev.onrender.com"
+const BACKEND_BASE = "https://nexavest-backend-dev.onrender.com"; // ✅ your backend link
 
 const assetEl = document.getElementById("asset");
 const amountEl = document.getElementById("amount");
@@ -18,30 +18,14 @@ function renderResult(data) {
   resultEl.classList.remove("hidden");
   resultEl.innerHTML = `
     <h2 class="text-xl font-bold text-cyan-300 mb-3">📊 Analysis Result</h2>
-    <div class="grid gap-2">
+    <div class="grid gap-2 text-gray-200 text-sm">
       <div><b>Asset:</b> ${data.asset || "N/A"} ${data.symbol ? `(${data.symbol})` : ""}</div>
       <div><b>Type:</b> ${data.type || "N/A"}</div>
       <div><b>Current Price:</b> ${data.current_price ?? "N/A"} ${data.currency ?? ""}</div>
-      <div><b>Annual Volatility:</b> ${
-        data.volatility_annual
-          ? (Number(data.volatility_annual) * 100).toFixed(2) + "%"
-          : "N/A"
-      }</div>
-      <div><b>Expected Annual Return:</b> ${
-        data.annual_return
-          ? (Number(data.annual_return) * 100).toFixed(2) + "%"
-          : data.expected_return || "N/A"
-      }</div>
       <div><b>Risk Level:</b> ${data.risk || "N/A"}</div>
-      <div><b>Suggested Holding Period:</b> ${data.holding_period || "N/A"}</div>
-      <div><b>Estimated Value:</b> ${data.estimated_value ?? ""} ${
-    data.currency ?? ""
-  }</div>
-      ${
-        data.amount_in_asset_currency
-          ? `<div><b>Converted Amount:</b> ${data.amount_in_asset_currency} ${data.currency}</div>`
-          : ""
-      }
+      <div><b>Expected Return:</b> ${data.expected_return || "N/A"}</div>
+      <div><b>Holding Period:</b> ${data.holding_period || "N/A"}</div>
+      <div><b>Estimated Value:</b> ${data.estimated_value ?? ""} ${data.currency ?? ""}</div>
       <div class="mt-2 text-gray-400">${data.summary || ""}</div>
       <div class="mt-2 text-xs text-gray-500">${data.disclaimer || ""}</div>
     </div>
@@ -54,11 +38,11 @@ analyzeBtn.addEventListener("click", async () => {
   const amount_currency = currencyEl.value || undefined;
 
   if (!asset || !amount || amount <= 0) {
-    setStatus("⚠️ Please enter valid details", true);
+    setStatus("⚠️ Please enter valid asset and positive amount", true);
     return;
   }
 
-  setStatus("Analyzing… please wait");
+  setStatus("Analyzing... please wait ⏳");
   analyzeBtn.disabled = true;
 
   try {
@@ -68,19 +52,20 @@ analyzeBtn.addEventListener("click", async () => {
       body: JSON.stringify({ asset, amount, amount_currency }),
     });
 
+    console.log("Response status:", res.status);
     const data = await res.json();
+    console.log("Response data:", data);
 
     if (!res.ok) {
-      setStatus(data.detail || data.error || "Analysis failed", true);
-      analyzeBtn.disabled = false;
+      setStatus(data.detail || data.error || "Analysis failed ❌", true);
       return;
     }
 
     renderResult(data);
     setStatus("✅ Analysis complete");
   } catch (e) {
-    console.error(e);
-    setStatus("❌ Unable to reach backend. Check your Render link.", true);
+    console.error("Error:", e);
+    setStatus("❌ Unable to reach NexaVest backend", true);
   } finally {
     analyzeBtn.disabled = false;
   }
