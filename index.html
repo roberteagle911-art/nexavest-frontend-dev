@@ -1,12 +1,51 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>NexaVest AI</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NexaVest AI — Analyze Stocks, Crypto, Forex</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="description" content="NexaVest — beginner-friendly automated asset detector & analyzer. Stocks, Crypto, Forex. Not financial advice." />
+</head>
+<body>
+  <header class="hero">
+    <img src="./favicon.png.png" alt="NexaVest logo" class="logo" />
+    <h1 class="title">NexaVest AI</h1>
+    <p class="subtitle">Enter a stock, company, crypto, or forex pair — we auto-detect and analyze it for retail investors.</p>
+  </header>
+
+  <main class="container">
+    <section class="form">
+      <label>Asset name / code / crypto / forex pair</label>
+      <input id="query" placeholder="e.g. Reliance, AAPL, Bitcoin, USD/INR" />
+      <label>Investment amount (your local currency)</label>
+      <input id="amount" placeholder="e.g. 1000" />
+      <div class="actions">
+        <button id="analyzeBtn">Analyze</button>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section id="result" class="result hidden">
+      <div class="result-card">
+        <h2>📊 Analysis Result</h2>
+        <div id="resultBody"></div>
+        <div class="disclaimer">
+          <strong>Disclaimer:</strong> This tool provides informational analysis only. It is NOT financial advice or a forecast. Past performance is not indicative of future results. Always do your own research.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © <span id="year"></span> NexaVest. All rights reserved.
+  </footer>
+
+  <script>
+    // Configure backend URL here (replace if different)
+    const BACKEND_BASE = "https://nexavest-backend-dev.vercel.app";
+    document.getElementById("year").innerText = new Date().getFullYear();
+  </script>
+  <script src="./app.js"></script>
+</body>
+  </html>
