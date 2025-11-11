@@ -1,5 +1,5 @@
 // app.js
-const BACKEND_BASE = "https://nexavest-backend-dev.onrender.com"; // Your Render backend URL
+const BACKEND_BASE = "https://nexavest-backend-dev.onrender.com"
 
 const assetEl = document.getElementById("asset");
 const amountEl = document.getElementById("amount");
