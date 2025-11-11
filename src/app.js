@@ -1,80 +1,100 @@
-// app.js
-const BACKEND_BASE = "https://nexavest-backend-dev.onrender.com"; // ✅ your backend link
+import React, { useState } from "react";
+import axios from "axios";
 
-const assetEl = document.getElementById("asset");
-const amountEl = document.getElementById("amount");
-const currencyEl = document.getElementById("amountCurrency");
-const analyzeBtn = document.getElementById("analyzeBtn");
-const clearBtn = document.getElementById("clearBtn");
-const statusEl = document.getElementById("status");
-const resultEl = document.getElementById("result");
+const API_URL = "https://nexavest-backend-dev.onrender.com/analyze";
 
-function setStatus(msg, error = false) {
-  statusEl.innerText = msg;
-  statusEl.style.color = error ? "#ff8a80" : "#9fded6";
-}
+function App() {
+  const [asset, setAsset] = useState("");
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("INR");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-function renderResult(data) {
-  resultEl.classList.remove("hidden");
-  resultEl.innerHTML = `
-    <h2 class="text-xl font-bold text-cyan-300 mb-3">📊 Analysis Result</h2>
-    <div class="grid gap-2 text-gray-200 text-sm">
-      <div><b>Asset:</b> ${data.asset || "N/A"} ${data.symbol ? `(${data.symbol})` : ""}</div>
-      <div><b>Type:</b> ${data.type || "N/A"}</div>
-      <div><b>Current Price:</b> ${data.current_price ?? "N/A"} ${data.currency ?? ""}</div>
-      <div><b>Risk Level:</b> ${data.risk || "N/A"}</div>
-      <div><b>Expected Return:</b> ${data.expected_return || "N/A"}</div>
-      <div><b>Holding Period:</b> ${data.holding_period || "N/A"}</div>
-      <div><b>Estimated Value:</b> ${data.estimated_value ?? ""} ${data.currency ?? ""}</div>
-      <div class="mt-2 text-gray-400">${data.summary || ""}</div>
-      <div class="mt-2 text-xs text-gray-500">${data.disclaimer || ""}</div>
-    </div>
-  `;
-}
-
-analyzeBtn.addEventListener("click", async () => {
-  const asset = assetEl.value.trim();
-  const amount = parseFloat(amountEl.value);
-  const amount_currency = currencyEl.value || undefined;
-
-  if (!asset || !amount || amount <= 0) {
-    setStatus("⚠️ Please enter valid asset and positive amount", true);
-    return;
-  }
-
-  setStatus("Analyzing... please wait ⏳");
-  analyzeBtn.disabled = true;
-
-  try {
-    const res = await fetch(`${BACKEND_BASE}/analyze`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ asset, amount, amount_currency }),
-    });
-
-    console.log("Response status:", res.status);
-    const data = await res.json();
-    console.log("Response data:", data);
-
-    if (!res.ok) {
-      setStatus(data.detail || data.error || "Analysis failed ❌", true);
+  const handleAnalyze = async () => {
+    if (!asset || !amount) {
+      setError("Please enter both asset and amount.");
       return;
     }
 
-    renderResult(data);
-    setStatus("✅ Analysis complete");
-  } catch (e) {
-    console.error("Error:", e);
-    setStatus("❌ Unable to reach NexaVest backend", true);
-  } finally {
-    analyzeBtn.disabled = false;
-  }
-});
+    setError("");
+    setLoading(true);
+    setResult(null);
 
-clearBtn.addEventListener("click", () => {
-  assetEl.value = "";
-  amountEl.value = "";
-  currencyEl.value = "";
-  resultEl.classList.add("hidden");
-  setStatus("");
-});
+    try {
+      const response = await axios.post(API_URL, {
+        asset,
+        amount: parseFloat(amount),
+        amount_currency: currency
+      });
+      setResult(response.data);
+    } catch (err) {
+      setError("Unable to fetch data. Check asset name or server status.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-b from-black via-gray-900 to-black">
+      {/* LOGO */}
+      <div className="flex flex-col items-center mb-6">
+        <img src="/favicon.png.png" alt="NexaVest logo" className="w-16 h-16 mb-2" />
+        <h1 className="text-4xl font-extrabold text-brand drop-shadow-md">
+          NexaVest AI
+        </h1>
+        <p className="text-gray-300 mt-2 text-center max-w-md">
+          Enter a stock, crypto, or forex name — NexaVest auto-detects, analyzes, and guides retail investors.
+        </p>
+      </div>
+
+      {/* Input Section */}
+      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-md space-y-4">
+        <input
+          type="text"
+          value={asset}
+          onChange={(e) => setAsset(e.target.value)}
+          placeholder="Enter company, stock, or crypto (e.g., Reliance, BTC, AAPL)"
+          className="w-full p-3 rounded-md bg-gray-900 text-white border border-gray-700"
+        />
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Investment amount"
+          className="w-full p-3 rounded-md bg-gray-900 text-white border border-gray-700"
+        />
+        <button
+          onClick={handleAnalyze}
+          disabled={loading}
+          className="w-full bg-brand text-black font-bold py-3 rounded-md hover:bg-cyan-300 transition"
+        >
+          {loading ? "Analyzing..." : "Analyze"}
+        </button>
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+      </div>
+
+      {/* Result Section */}
+      {result && (
+        <div className="bg-gray-900 mt-6 p-6 rounded-2xl shadow-lg w-full max-w-md border border-gray-700">
+          <h2 className="text-xl font-bold text-brand mb-3">Analysis Result</h2>
+          <p><strong>Asset:</strong> {result.asset}</p>
+          <p><strong>Symbol:</strong> {result.symbol}</p>
+          <p><strong>Price:</strong> {result.current_price} {result.currency}</p>
+          <p><strong>Risk:</strong> {result.risk}</p>
+          <p><strong>Expected Return:</strong> {result.expected_return}</p>
+          <p><strong>Holding Period:</strong> {result.holding_period}</p>
+          <p><strong>Suggestion:</strong> {result.suggestion}</p>
+          <p className="text-xs text-gray-400 mt-4">{result.disclaimer}</p>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="text-gray-500 text-sm mt-8 mb-4">
+        © 2025 <span className="text-brand font-semibold">NexaVest</span>. All rights reserved.
+      </footer>
+    </div>
+  );
+}
+
+export default App;
